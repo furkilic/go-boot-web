@@ -48,7 +48,7 @@ func Test_web(t *testing.T) {
 		SSL{false, "", ""},
 	}
 	httpsConf := GoWebConf{
-		":8080",
+		":8081",
 		0,
 		"",
 		1 << 20,
@@ -62,7 +62,7 @@ func Test_web(t *testing.T) {
 		SSL{true, "../../test/cert.pem", "../../test/key.pem"},
 	}
 	errorConf := GoWebConf{
-		":8080",
+		":8082",
 		0,
 		"",
 		16,
@@ -128,7 +128,7 @@ func Test_web(t *testing.T) {
 		},
 		{"With Compression",
 			GoWebConf{
-				":8080",
+				":8083",
 				0,
 				"",
 				1 << 20,
@@ -146,7 +146,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("Compressed")
 			},
-			req{"http://localhost:8080/compressed", createMap("Accept-Encoding", "gzip"), false, false},
+			req{"http://localhost:8083/compressed", createMap("Accept-Encoding", "gzip"), false, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusOK,
@@ -205,7 +205,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("HTTPS")
 			},
-			req{"https://localhost:8080/https", createMap(), true, false},
+			req{"https://localhost:8081/https", createMap(), true, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusOK,
@@ -220,7 +220,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("HTTP2")
 			},
-			req{"https://localhost:8080/http2", createMap(), true, true},
+			req{"https://localhost:8081/http2", createMap(), true, true},
 			resp{
 				"HTTP/2.0",
 				http.StatusOK,
@@ -231,7 +231,7 @@ func Test_web(t *testing.T) {
 		{"Error Big Header",
 			errorConf, "error",
 			func(w http.ResponseWriter, r *http.Request) { time.Sleep(time.Second * 1) },
-			req{"http://localhost:8080/error",
+			req{"http://localhost:8082/error",
 				func() map[string]string {
 					m := make(map[string]string)
 					for i := 0; i < 1000; i++ {
@@ -255,7 +255,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("toto")
 			},
-			req{"http://localhost:8080/error", createMap(),
+			req{"http://localhost:8082/error", createMap(),
 				false, false},
 			resp{
 				"",
