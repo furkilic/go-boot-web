@@ -275,11 +275,7 @@ func Test_web(t *testing.T) {
 		goWebConf.Address = fmt.Sprintf(":%d", port)
 		tt.req.url = strings.ReplaceAll(tt.req.url, ":0000", goWebConf.Address)
 		addDefaultValues()
-		errChan := Start()
-		go func() {
-			err := <-errChan
-			fmt.Println(err)
-		}()
+		Start()
 		time.Sleep(time.Millisecond * 100)
 		Router().Methods("GET").Path("/" + tt.path).Name(strings.ToUpper(tt.path)).HandlerFunc(tt.handler)
 		t.Run(tt.name, func(t *testing.T) {
@@ -299,7 +295,7 @@ func Test_web(t *testing.T) {
 				t.Errorf("web() = %v, want %v", r, tt.resp)
 			}
 		})
-		fmt.Println(Stop())
+		Stop()
 	}
 }
 
