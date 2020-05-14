@@ -1,0 +1,4 @@
+version: '3'
+services:
+  go-boot-web:
+    image: go-boot-web:0.0.1
