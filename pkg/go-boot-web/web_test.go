@@ -280,6 +280,7 @@ func Test_web(t *testing.T) {
 			err := <-errChan
 			fmt.Println(err)
 		}()
+		time.Sleep(time.Millisecond * 100)
 		Router().Methods("GET").Path("/" + tt.path).Name(strings.ToUpper(tt.path)).HandlerFunc(tt.handler)
 		t.Run(tt.name, func(t *testing.T) {
 			proto, status, response, err := call(tt.req.url, tt.req.headers, tt.req.https, tt.req.http2)
