@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"reflect"
 	"strings"
@@ -21,6 +22,7 @@ import (
 )
 
 func Test_web(t *testing.T) {
+	rand.Seed(time.Now().UnixNano())
 	type req struct {
 		url     string
 		headers map[string]string
@@ -34,42 +36,42 @@ func Test_web(t *testing.T) {
 		err      bool
 	}
 	defaultWebConf := GoWebConf{
-		":8080",
+		":0000",
 		0,
 		"",
 		1 << 20,
 		60000,
 		15000,
 		15000,
-		15000,
+		5,
 		Compression{false},
 		NotFoundHandler{true},
 		HTTP2{false},
 		SSL{false, "", ""},
 	}
 	httpsConf := GoWebConf{
-		":8080",
+		":0000",
 		0,
 		"",
 		1 << 20,
 		60000,
 		15000,
 		15000,
-		15000,
+		5,
 		Compression{false},
 		NotFoundHandler{true},
 		HTTP2{true},
 		SSL{true, "../../test/cert.pem", "../../test/key.pem"},
 	}
 	errorConf := GoWebConf{
-		":8080",
+		":0000",
 		0,
 		"",
 		16,
 		100,
 		100,
 		100,
-		15000,
+		5,
 		Compression{false},
 		NotFoundHandler{true},
 		HTTP2{false},
@@ -90,7 +92,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("NoNo")
 			},
-			req{"http://localhost:8080/none", createMap(), false, false},
+			req{"http://localhost:0000/none", createMap(), false, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusOK,
@@ -100,14 +102,14 @@ func Test_web(t *testing.T) {
 		},
 		{"With BasePath",
 			GoWebConf{
-				":9090",
+				":0000",
 				0,
 				"/base-path",
 				1 << 20,
 				60000,
 				15000,
 				15000,
-				15000,
+				5,
 				Compression{false},
 				NotFoundHandler{true},
 				HTTP2{false},
@@ -118,7 +120,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("BasePath")
 			},
-			req{"http://localhost:9090/base-path/basePath", createMap(), false, false},
+			req{"http://localhost:0000/base-path/basePath", createMap(), false, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusOK,
@@ -128,14 +130,14 @@ func Test_web(t *testing.T) {
 		},
 		{"With Compression",
 			GoWebConf{
-				":8080",
+				":0000",
 				0,
 				"",
 				1 << 20,
 				60000,
 				15000,
 				15000,
-				15000,
+				5,
 				Compression{true},
 				NotFoundHandler{true},
 				HTTP2{false},
@@ -146,7 +148,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("Compressed")
 			},
-			req{"http://localhost:8080/compressed", createMap("Accept-Encoding", "gzip"), false, false},
+			req{"http://localhost:0000/compressed", createMap("Accept-Encoding", "gzip"), false, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusOK,
@@ -157,7 +159,7 @@ func Test_web(t *testing.T) {
 		{"NotFound Default Handler",
 			defaultWebConf, "none",
 			nil,
-			req{"http://localhost:8080/not-found", createMap(), false, false},
+			req{"http://localhost:0000/not-found", createMap(), false, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusNotFound,
@@ -168,7 +170,7 @@ func Test_web(t *testing.T) {
 		{"NotFound JSON Handler",
 			defaultWebConf, "none",
 			nil,
-			req{"http://localhost:8080/not-found", createMap("Accept", "application/json"), false, false},
+			req{"http://localhost:0000/not-found", createMap("Accept", "application/json"), false, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusNotFound,
@@ -179,7 +181,7 @@ func Test_web(t *testing.T) {
 		{"NotFound XML Handler",
 			defaultWebConf, "none",
 			nil,
-			req{"http://localhost:8080/not-found", createMap("Accept", "application/xml"), false, false},
+			req{"http://localhost:0000/not-found", createMap("Accept", "application/xml"), false, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusNotFound,
@@ -190,7 +192,7 @@ func Test_web(t *testing.T) {
 		{"NotFound HTML Handler",
 			defaultWebConf, "none",
 			nil,
-			req{"http://localhost:8080/not-found", createMap("Accept", "text/html"), false, false},
+			req{"http://localhost:0000/not-found", createMap("Accept", "text/html"), false, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusNotFound,
@@ -205,7 +207,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("HTTPS")
 			},
-			req{"https://localhost:8080/https", createMap(), true, false},
+			req{"https://localhost:0000/https", createMap(), true, false},
 			resp{
 				"HTTP/1.1",
 				http.StatusOK,
@@ -220,7 +222,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("HTTP2")
 			},
-			req{"https://localhost:8080/http2", createMap(), true, true},
+			req{"https://localhost:0000/http2", createMap(), true, true},
 			resp{
 				"HTTP/2.0",
 				http.StatusOK,
@@ -231,7 +233,7 @@ func Test_web(t *testing.T) {
 		{"Error Big Header",
 			errorConf, "error",
 			func(w http.ResponseWriter, r *http.Request) { time.Sleep(time.Second * 1) },
-			req{"http://localhost:8080/error",
+			req{"http://localhost:0000/error",
 				func() map[string]string {
 					m := make(map[string]string)
 					for i := 0; i < 1000; i++ {
@@ -255,7 +257,7 @@ func Test_web(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode("toto")
 			},
-			req{"http://localhost:8080/error", createMap(),
+			req{"http://localhost:0000/error", createMap(),
 				false, false},
 			resp{
 				"",
@@ -267,10 +269,14 @@ func Test_web(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		port := rand.Intn(1010) + 8080
 		router = mux.NewRouter().StrictSlash(true)
 		goWebConf = tt.conf
+		goWebConf.Address = fmt.Sprintf(":%d", port)
+		tt.req.url = strings.ReplaceAll(tt.req.url, ":0000", goWebConf.Address)
 		addDefaultValues()
 		Start()
+		time.Sleep(time.Millisecond * 100)
 		Router().Methods("GET").Path("/" + tt.path).Name(strings.ToUpper(tt.path)).HandlerFunc(tt.handler)
 		t.Run(tt.name, func(t *testing.T) {
 			proto, status, response, err := call(tt.req.url, tt.req.headers, tt.req.https, tt.req.http2)
@@ -289,7 +295,7 @@ func Test_web(t *testing.T) {
 				t.Errorf("web() = %v, want %v", r, tt.resp)
 			}
 		})
-		fmt.Println(Stop())
+		Stop()
 	}
 }
 
