@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/furkilic/go-boot-web/pkg/go-boot-web"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	gobootweb "github.com/furkilic/go-boot-web/pkg/go-boot-web"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 
 	log.Println("Routed")
 
-	termChan := make(chan os.Signal)
+	termChan := make(chan os.Signal, 1)
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 
 	log.Println("Waiting")
